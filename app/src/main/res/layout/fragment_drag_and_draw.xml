@@ -1,0 +1,5 @@
+<qbai22.com.draganddraw.BoxDrawingView
+    android:id="@+id/box_drawing_view"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"/>
