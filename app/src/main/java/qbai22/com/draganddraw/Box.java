@@ -4,7 +4,7 @@ import android.graphics.PointF;
 
 import java.io.Serializable;
 
-public class Box implements{
+public class Box {
     private PointF mOrigin;
     private PointF mCurrent;
 

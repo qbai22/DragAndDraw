@@ -4,7 +4,6 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.PointF;
-import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.AttributeSet;
@@ -12,12 +11,8 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
-import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-
-import javax.security.auth.login.LoginException;
 
 /**
  * Created by qbai on 16.11.2016.
@@ -25,12 +20,13 @@ import javax.security.auth.login.LoginException;
 
 public class BoxDrawingView extends View {
     private static final String TAG = "BoxDrawingView";
-    private Box mCurrentBox;
-    private List<Box> mBoxen = new ArrayList<>();
-    private Paint mBoxPaint;
-    private Paint mBackgroundPaint;
     private static final String PARENT_STATE = "Parent State";
     private static final String BOXEN_STATE = "Boxen State";
+    private List<Box> mBoxen = new ArrayList<>();
+    private Box mCurrentBox;
+    private Paint mBoxPaint;
+    private Paint mBackgroundPaint;
+
     //используется при создании View в коде
     public BoxDrawingView(Context context) {
         this(context, null);
@@ -51,21 +47,17 @@ public class BoxDrawingView extends View {
 
     @Override
     protected Parcelable onSaveInstanceState() {
-        Log.i(TAG, "onSaveInstanceState: invoked");
-        Parcelable parent = super.onSaveInstanceState();
-        Bundle bundle = new Bundle();
-        bundle.putParcelable(PARENT_STATE, parent);
-        bundle.putSerializable(BOXEN_STATE, (Serializable) mBoxen);
-        return bundle;
+        Parcelable parentState = super.onSaveInstanceState();
+        SavedState ss = new SavedState(parentState);
+        ss.mBoxList = mBoxen;
+        return ss;
     }
 
     @Override
     protected void onRestoreInstanceState(Parcelable state) {
-        Log.i(TAG, "onRestoreInstanceState: invoooooled");
-        Bundle b = (Bundle) state;
-        ArrayList<Box> list = (ArrayList<Box>) b.getSerializable(BOXEN_STATE);
-        mBoxen = list;
-        super.onRestoreInstanceState(b.getParcelable(PARENT_STATE));
+        SavedState ss = (SavedState) state;
+        super.onRestoreInstanceState(ss.getSuperState());
+        mBoxen = ss.mBoxList;
         invalidate();
     }
 
@@ -107,9 +99,9 @@ public class BoxDrawingView extends View {
                 action = "ACTION_UP";
 
                 int index = mBoxen.indexOf(mCurrentBox);
-                Log.i(TAG, "current box"+ mBoxen.get(index).getCurrent().x);
+                Log.i(TAG, "current box" + mBoxen.get(index).getCurrent().x);
                 mCurrentBox = null;
-                Log.i(TAG, mBoxen.contains(mCurrentBox)+"");
+                Log.i(TAG, mBoxen.contains(mCurrentBox) + "");
                 break;
             case MotionEvent.ACTION_CANCEL:
                 action = "ACTION_CANCEL";
@@ -120,16 +112,35 @@ public class BoxDrawingView extends View {
         return true;
     }
 
-    static class SavedState extends BaseSavedState {
+    private static class SavedState extends BaseSavedState {
 
-        private ArrayList<Box> mBoxArrayList;
+        public static final Parcelable.Creator<SavedState> CREATOR =
+                new Creator<SavedState>() {
+                    @Override
+                    public SavedState createFromParcel(Parcel parcel) {
+                        return new SavedState(parcel);
+                    }
 
-        public SavedState(Parcel source) {
-            super(source);
+                    @Override
+                    public SavedState[] newArray(int size) {
+                        return new SavedState[size];
+                    }
+                };
+        private List<Box> mBoxList;
+
+        public SavedState(Parcel in) {
+            super(in);
+            this.mBoxList = (List<Box>) in.readValue(getClass().getClassLoader());
         }
 
         public SavedState(Parcelable superState) {
             super(superState);
+        }
+
+        @Override
+        public void writeToParcel(Parcel out, int flags) {
+            super.writeToParcel(out, flags);
+            out.writeValue(mBoxList);
         }
     }
 }
